@@ -18,7 +18,7 @@ import dayjs from "dayjs";
 
 import { useForm } from "vee-validate";
 
-const { getProfile } = useAuthStore();
+const { getProfile, logout } = useAuthStore();
 const { getAllAttendance, createAttendance } = useAttendance();
 const { toast } = useToast();
 
@@ -131,6 +131,9 @@ onMounted(async () => {
           <p class="font-bold text-lg">Employee: {{ employee?.full_name }}</p>
           <LoadingSpinner :loading="loading" />
         </div>
+        <Button @click="logout" variant="secondary" class="rounded-full">
+          Logout
+        </Button>
         <Button variant="secondary" size="icon" class="rounded-full">
           <CircleUser class="h-5 w-5" />
           <span class="sr-only">Toggle user menu</span>

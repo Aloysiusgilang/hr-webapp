@@ -5,7 +5,7 @@ import {
   attendanceClient,
 } from "@/api/axiosClients";
 import useCrypto from "@/composables/useCrypto";
-import { useRouter } from "vue-router";
+
 // auth store to manage user authentication, store token to local storage, etci
 
 interface User {
@@ -82,10 +82,6 @@ export const useAuthStore = defineStore({
       this.user = null;
       localStorage.removeItem(TOKEN_LOCAL_STORAGE_KEY);
       localStorage.removeItem(USER_LOCAL_STORAGE_KEY);
-
-      // goback to login page
-      const router = useRouter();
-      router.push({ name: "login" });
     },
   },
 });

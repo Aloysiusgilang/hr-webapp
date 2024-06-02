@@ -16,6 +16,19 @@ export default function useAttendance() {
     }
   };
 
+  const getAllAttendances = async () => {
+    try {
+      const response = await attendanceClient.get("/attendance/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      return error.response.data;
+    }
+  };
+
   // create new attendance record
   const createAttendance = async (payload: object) => {
     try {
@@ -32,5 +45,5 @@ export default function useAttendance() {
     }
   };
 
-  return { getAllAttendance, createAttendance };
+  return { getAllAttendance, createAttendance, getAllAttendances };
 }

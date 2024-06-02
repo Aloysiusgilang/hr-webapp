@@ -12,6 +12,9 @@ import {
 import type { Attendance } from "@/api/types/attendance";
 
 import dayjs from "dayjs";
+import { useAuthStore } from "@/stores/authStore";
+
+const { user } = useAuthStore();
 
 const props = defineProps<{
   attendances: Attendance[];
@@ -29,6 +32,18 @@ const props = defineProps<{
             </TableHead>
             <TableHead class="hidden md:table-cell"> Timestamp </TableHead>
             <TableHead>Status</TableHead>
+            <TableHead
+              v-if="user!.role === 'admin'"
+              class="hidden md:table-cell"
+            >
+              Employee
+            </TableHead>
+            <TableHead
+              v-if="user!.role === 'admin'"
+              class="hidden md:table-cell"
+            >
+              Position
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -48,7 +63,16 @@ const props = defineProps<{
             <TableCell>
               <Badge variant="outline"> ontime </Badge>
             </TableCell>
-            <TableCell class="hidden md:table-cell"> </TableCell>
+            <TableCell
+              v-if="user!.role === 'admin'"
+              class="hidden md:table-cell"
+              >{{ attendance.employee?.full_name }}</TableCell
+            >
+            <TableCell
+              v-if="user!.role === 'admin'"
+              class="hidden md:table-cell"
+              >{{ attendance.employee?.position }}
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>
