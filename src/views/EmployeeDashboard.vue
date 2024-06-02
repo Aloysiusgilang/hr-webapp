@@ -1,0 +1,146 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { CircleUser, Home, Menu, Package2 } from "lucide-vue-next";
+
+import { Button } from "@/components/ui/button";
+import { AutoForm } from "@/components/ui/auto-form";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import LoadingSpinner from "../components/LoadingSpinner.vue";
+import AttendanceTable from "@/components/AttendanceTable.vue";
+
+import useAttendance from "@/composables/useAttendance";
+
+import { Employee } from "@/api/types/employee";
+import { Attendance } from "@/api/types/attendance";
+
+import { useAuthStore } from "@/stores/authStore";
+import dayjs from "dayjs";
+
+const { getProfile } = useAuthStore();
+const { getAllAttendance, getAttendanceByDate, createAttendance } =
+  useAttendance();
+const employee = ref<Employee>();
+const loading = ref(false);
+
+const currentDate = ref(dayjs().format("YYYY-MM-DD HH:mm:ss"));
+const hasAttended = ref(false);
+const attendances = ref<Attendance[]>([]);
+
+//
+
+onMounted(async () => {
+  loading.value = true;
+  const res = await getProfile();
+  employee.value = res;
+
+  if (employee.value) {
+    const attendanceRes = await getAllAttendance(employee.value.id);
+    attendances.value = attendanceRes;
+  }
+
+  loading.value = false;
+});
+</script>
+
+<template>
+  <div
+    class="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
+  >
+    <div class="hidden border-r bg-muted/40 md:block">
+      <div class="flex h-full max-h-screen flex-col gap-2">
+        <div class="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+          <a href="/" class="flex items-center gap-2 font-semibold">
+            <Package2 class="h-6 w-6" />
+            <div
+              :class="{
+                'animate-pulse': loading,
+              }"
+            >
+              Employee Dashboard
+            </div>
+          </a>
+        </div>
+        <div class="flex-1">
+          <nav class="grid items-start px-2 text-sm font-medium lg:px-4">
+            <a
+              href="/"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <Home class="h-4 w-4" />
+              Attendance
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-col">
+      <header
+        class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6"
+      >
+        <Sheet>
+          <SheetTrigger as-child>
+            <Button variant="outline" size="icon" class="shrink-0 md:hidden">
+              <Menu class="h-5 w-5" />
+              <span>Toggle navigation menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" class="flex flex-col">
+            <nav class="grid gap-2 text-lg font-medium">
+              <a href="#" class="flex items-center gap-2 text-lg font-semibold">
+                <Package2 class="h-6 w-6" />
+                <span class="sr-only">Acme Inc</span>
+              </a>
+              <a
+                href="#"
+                class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+              >
+                <Home class="h-5 w-5" />
+                Attendance
+              </a>
+            </nav>
+          </SheetContent>
+        </Sheet>
+        <div class="w-full flex-1">
+          <p class="font-bold text-lg">Employee: {{ employee?.full_name }}</p>
+          <LoadingSpinner :loading="loading" />
+        </div>
+        <Button variant="secondary" size="icon" class="rounded-full">
+          <CircleUser class="h-5 w-5" />
+          <span class="sr-only">Toggle user menu</span>
+        </Button>
+      </header>
+      <main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <div class="flex items-center justify-between">
+          <h1 class="text-lg font-semibold md:text-2xl">Attendance</h1>
+          <p class="text-sm text-muted-foreground">{{ currentDate }}</p>
+        </div>
+        <div
+          class="flex flex-col items-center justify-center rounded-lg border border-dashed shadow-sm p-4"
+        >
+          <h3 class="text-2xl font-bold tracking-tight">
+            Mark Your Attendance
+          </h3>
+          <p class="text-sm text-muted-foreground">
+            Upload a photo to mark your attendance for today.
+          </p>
+          <form class="flex flex-col items-center gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              required
+              class="block w-full text-sm text-muted-foreground"
+            />
+            <Button type="submit" class="mt-4">Submit Attendance</Button>
+          </form>
+          <p class="text-sm mt-2" v-if="hasAttended">
+            You have already marked your attendance for today.
+          </p>
+        </div>
+        <div class="flex flex-col">
+          <h2 class="text-xl font-semibold">All Attendance Records</h2>
+          <AttendanceTable />
+        </div>
+      </main>
+    </div>
+  </div>
+</template>

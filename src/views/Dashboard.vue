@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
 import {
   Bell,
   CircleUser,
@@ -31,6 +32,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
+import { Employee } from "@/api/types/employee";
+
+import { useAuthStore } from "@/stores/authStore";
+
+const { getProfile } = useAuthStore();
+const employee = ref<Employee>();
+
+onMounted(async () => {
+  const res = await getProfile();
+  employee.value = res;
+});
 </script>
 
 <template>
@@ -42,7 +55,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
         <div class="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <a href="/" class="flex items-center gap-2 font-semibold">
             <Package2 class="h-6 w-6" />
-            <span class="">Acme Inc</span>
+            <span class="">{{ employee?.full_name }}</span>
           </a>
           <Button variant="outline" size="icon" class="ml-auto h-8 w-8">
             <Bell class="h-4 w-4" />
