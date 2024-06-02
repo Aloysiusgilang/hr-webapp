@@ -1,10 +1,15 @@
 import { attendanceClient } from "@/api/axiosClients";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function useAttendance() {
-  // fetch all attendance records by employee id
+  const { token } = useAuthStore();
   const getAllAttendance = async (employeeId: string) => {
     try {
-      const response = await attendanceClient.get(`/employee/${employeeId}`);
+      const response = await attendanceClient.get(`/employee/${employeeId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     } catch (error: any) {
       return error.response.data;
@@ -14,23 +19,18 @@ export default function useAttendance() {
   // create new attendance record
   const createAttendance = async (payload: object) => {
     try {
-      const response = await attendanceClient.post("/attendance/", payload);
+      console.log("payload", payload);
+      const response = await attendanceClient.post("/attendance/", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data;
     } catch (error: any) {
       return error.response.data;
     }
   };
 
-  const getAttendanceByDate = async (employeeId: string, date: string) => {
-    try {
-      const response = await attendanceClient.get(
-        `/employee/${employeeId}/date/${date}`
-      );
-      return response.data;
-    } catch (error: any) {
-      return error.response.data;
-    }
-  };
-
-  return { getAllAttendance, createAttendance, getAttendanceByDate };
+  return { getAllAttendance, createAttendance };
 }

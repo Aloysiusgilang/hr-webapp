@@ -3,10 +3,10 @@ import { onMounted, ref } from "vue";
 import { CircleUser, Home, Menu, Package2 } from "lucide-vue-next";
 
 import { Button } from "@/components/ui/button";
-import { AutoForm } from "@/components/ui/auto-form";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import AttendanceTable from "@/components/AttendanceTable.vue";
+import { useToast } from "@/components/ui/toast";
 
 import useAttendance from "@/composables/useAttendance";
 
@@ -16,17 +16,44 @@ import { Attendance } from "@/api/types/attendance";
 import { useAuthStore } from "@/stores/authStore";
 import dayjs from "dayjs";
 
+import { useForm } from "vee-validate";
+
 const { getProfile } = useAuthStore();
-const { getAllAttendance, getAttendanceByDate, createAttendance } =
-  useAttendance();
+const { getAllAttendance, createAttendance } = useAttendance();
+const { toast } = useToast();
+
 const employee = ref<Employee>();
 const loading = ref(false);
+const file = ref<File>();
 
-const currentDate = ref(dayjs().format("YYYY-MM-DD HH:mm:ss"));
+const currentDate = ref(dayjs().format("YYYY-MM-DDTHH:mm:ssZ"));
 const hasAttended = ref(false);
 const attendances = ref<Attendance[]>([]);
 
-//
+// file upload validation
+const { handleSubmit } = useForm();
+const submitAttendance = handleSubmit(async () => {
+  const formData = new FormData();
+  formData.append("file", file.value as File);
+  formData.append("employee_id", employee.value!.id.toString());
+  formData.append("date", currentDate.value);
+  formData.append("timestamp", currentDate.value);
+
+  loading.value = true;
+  const res = await createAttendance(formData);
+  toast({
+    title: "You have already marked your attendance for today",
+    description: res,
+  });
+  loading.value = false;
+
+  const attendanceRes = await getAllAttendance(employee.value!.id);
+  attendances.value = attendanceRes;
+});
+
+const handleFileChange = ($event: Event) => {
+  file.value = ($event.target as HTMLInputElement).files![0];
+};
 
 onMounted(async () => {
   loading.value = true;
@@ -112,7 +139,9 @@ onMounted(async () => {
       <main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div class="flex items-center justify-between">
           <h1 class="text-lg font-semibold md:text-2xl">Attendance</h1>
-          <p class="text-sm text-muted-foreground">{{ currentDate }}</p>
+          <p class="text-sm text-muted-foreground">
+            {{ dayjs(currentDate).format("YYYY-MM-DD HH:mm:ss") }}
+          </p>
         </div>
         <div
           class="flex flex-col items-center justify-center rounded-lg border border-dashed shadow-sm p-4"
@@ -126,11 +155,18 @@ onMounted(async () => {
           <form class="flex flex-col items-center gap-2">
             <input
               type="file"
+              @change="handleFileChange"
               accept="image/*"
               required
               class="block w-full text-sm text-muted-foreground"
             />
-            <Button type="submit" class="mt-4">Submit Attendance</Button>
+            <Button
+              @click="submitAttendance"
+              :disabled="!file"
+              type="submit"
+              class="mt-4"
+              >Submit Attendance</Button
+            >
           </form>
           <p class="text-sm mt-2" v-if="hasAttended">
             You have already marked your attendance for today.
@@ -138,7 +174,9 @@ onMounted(async () => {
         </div>
         <div class="flex flex-col">
           <h2 class="text-xl font-semibold">All Attendance Records</h2>
-          <AttendanceTable />
+          <LoadingSpinner :loading="loading" />
+
+          <AttendanceTable :attendances="attendances" />
         </div>
       </main>
     </div>

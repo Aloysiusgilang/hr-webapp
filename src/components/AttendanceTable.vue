@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { defineProps } from "vue";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -8,6 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { Attendance } from "@/api/types/attendance";
+
+import dayjs from "dayjs";
+
+const props = defineProps<{
+  attendances: Attendance[];
+}>();
 </script>
 
 <template>
@@ -24,19 +32,21 @@ import {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
+          <TableRow v-for="attendance in props.attendances">
             <TableCell class="hidden sm:table-cell">
               <img
                 alt="Product image"
                 class="aspect-square rounded-md object-cover"
                 height="64"
-                src=""
+                :src="attendance.photo_url"
                 width="64"
               />
             </TableCell>
-            <TableCell class="font-medium"> 2023-07-12 10:42 AM </TableCell>
+            <TableCell class="font-medium">
+              {{ dayjs(attendance.date).format("YYYY-MM-DD HH:mm:ss") }}
+            </TableCell>
             <TableCell>
-              <Badge variant="outline"> Draft </Badge>
+              <Badge variant="outline"> ontime </Badge>
             </TableCell>
             <TableCell class="hidden md:table-cell"> </TableCell>
           </TableRow>
